@@ -1,0 +1,6 @@
+name: BlockFinder
+main: com.gcerzoso.Finder
+version: 1.0
+commands:
+ findblock:
+    aliases: [fb]
