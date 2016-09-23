@@ -41,7 +41,7 @@ public class FindCommand implements CommandExecutor {
 				if( args.length==0 ){
 					searchDefault(player);
 				}else if( args.length==1 ){
-					searchRadius(player,args[0]);
+					searchMaterial(player, args[0]);
 				}else if( args.length>1 ){
 					searchRadius(player,args[0],args[1]);
 				}
@@ -56,11 +56,20 @@ public class FindCommand implements CommandExecutor {
 		searchRadius(player, DEFAULTRADIUS, DEFAULTMATERIAL);
 	}
 	
-	private void searchRadius(Player player,String rad){
-		searchRadius(player, rad, DEFAULTMATERIAL);
+	/**
+	 * @param player - The Player who called the command
+	 * @param rad - The radius in which to search
+	 */
+	private void searchMaterial(Player player,String mat){
+		searchRadius(player, mat, DEFAULTRADIUS);
 	}
 	
-	private void searchRadius(Player player,String rad, String mat){
+	/**
+	 * @param player - The Player who called the command
+	 * @param rad - The radius in which to search
+	 * @param mat - The material name of the block to search
+	 */
+	private void searchRadius(Player player, String mat, String rad){
 		Location l = player.getLocation();
 		World world = l.getWorld();
 		int count=0;
@@ -86,6 +95,7 @@ public class FindCommand implements CommandExecutor {
 			player.sendMessage("Found "+count+" blocks into a radius of: "+rad);
 		} catch (Exception e) {
 			player.sendMessage("Please specify a correct radius or a correct material");
+			player.sendMessage("Usage: /findblock <material> <radius>");
 		}
 		
 	}
