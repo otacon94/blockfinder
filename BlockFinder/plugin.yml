@@ -1,8 +1,6 @@
 name: BlockFinder
-main: com.otacon94.blockfinder.BlockFinder
+main: com.gcerzoso.Finder
 version: 1.0
 commands:
  findblock:
-    description: Searches for blocks into a radius. u:<player1>,<player2>... (optional) b:<BlockID1>,<BlockID2>... (required) r:<radius> (optionl - default is 20)
-    usage: /findblock
     aliases: [fb]
