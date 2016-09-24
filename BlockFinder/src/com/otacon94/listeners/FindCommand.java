@@ -2,7 +2,9 @@ package com.otacon94.listeners;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.TreeSet;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -30,12 +32,11 @@ import net.md_5.bungee.api.chat.TextComponent;
  */
 public class FindCommand implements CommandExecutor {
 
-	private static final String DEFAULTRADIUS = 20 + "";
+	private static final String DEFAULTRADIUS = 100 + "";
 
 	private static final String BLOCKID = "b";
 	private static final String USERID = "u";
 	private static final String RADIUSID = "r";
-	private static final String HISTORY = "-h";
 
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
@@ -57,10 +58,9 @@ public class FindCommand implements CommandExecutor {
 
 	private void parseInput(Player player, String[] args) {
 		try {
-			List<String> playerSet = new LinkedList<>();
-			List<String> typeSet = new LinkedList<>();
+			List<String> playerList = null;
+			List<String> typeList = new LinkedList<>();
 			String radius = DEFAULTRADIUS;
-			boolean history = false;
 			// simply parse, assuming input without spaces like: "u:player1,player2
 			// b:<id1>,<id2> r:10"
 			for (int i = 0; i < args.length; i++) {
@@ -69,33 +69,26 @@ public class FindCommand implements CommandExecutor {
 					String token = st.nextToken();
 					if (token.equalsIgnoreCase(BLOCKID)) {
 						while (st.hasMoreTokens()) {
-							typeSet.add(st.nextToken());
+							typeList.add(st.nextToken());
 						}
 					} else if (token.equalsIgnoreCase(USERID)) {
 						while (st.hasMoreTokens()) {
-							playerSet.add(st.nextToken().toLowerCase());
+							if(playerList==null){
+								playerList = new LinkedList<>();
+							}
+							playerList.add(st.nextToken().toLowerCase());
 						}
 					} else if (token.equalsIgnoreCase(RADIUSID)) {
 						radius = st.nextToken();
-					} else if (token.equalsIgnoreCase(HISTORY) ){
-						history=true;
-					}
+					} 
 				}
 			}
-			if (typeSet.size() != 0) {
-				if (playerSet.size() != 0) {
-					if( history ){
-						searchHistory(player, typeSet, playerSet, radius);
-					}else{
-						searchRadius(player,typeSet,radius);
-					}
-				}else{
-					searchRadius(player, typeSet, radius);
-				}
+			if (typeList.size() != 0) {
+				searchHistory(player, typeList, playerList, radius);
 			}else{
 				player.sendMessage("You have to specify at least the Block Type! (Ex: b:hopper");
-				return;
 			}
+			
 		} catch (NumberFormatException e) {
 			e.printStackTrace();
 			player.sendMessage("Error reading blocks id! Are sure you are using number?");
@@ -178,7 +171,7 @@ public class FindCommand implements CommandExecutor {
 				try {
 					int radius = Integer.valueOf(rad);
 					sender.sendMessage("Searching for: " + mat + " placed by: " + player + " in a radius of: " + rad);
-					List<Object> materialList = getMaterialList(mat);
+					List<Object> materialList = getMaterialList(sender,mat);
 					//it is possible to specify only placement and removal by passing and actionid list with 0 and 1 ad elements
 					List<String[]> values = coApi.performLookup(Integer.MAX_VALUE, player, null, materialList, null,
 							null, radius, l );
@@ -204,11 +197,15 @@ public class FindCommand implements CommandExecutor {
 		t.start();
 	}
 	
-	private List<Object> getMaterialList(List<String> mat) {
+	private List<Object> getMaterialList(Player p,List<String> mat) {
 		List<Object> matList = new LinkedList<>();
 		for(String s: mat){
-			System.out.println("name: "+s+" matched: "+Material.matchMaterial(s));
-			matList.add(Material.matchMaterial(s));
+			Material m = Material.matchMaterial(s);
+			if( m==null ){
+				p.sendMessage("Impossible to found that material: "+s);
+			}else{
+				matList.add(m);
+			}
 		}
 		return matList;
 	}
@@ -241,9 +238,20 @@ public class FindCommand implements CommandExecutor {
 	 * 			  - The ParseResult of the log found
 	 */
 	private void constructMessage(Player receiver, ParseResult result) {
-		int hours = result.getTime() / 3600;
+		int secs = (int)(System.currentTimeMillis()/1000)-result.getTime();
+		int minutes = secs/60;
+		int hours = 0;
+		while(minutes>=60){
+			hours++;
+			minutes-=60;
+		}
+		String time = "";
+		if(hours>0){
+			time+=hours+ " h ";
+		}
+		time+=minutes+" m ago";
 		String msg = result.getType().toString() + " at: " + result.getX() + " , " + result.getY() + " , " +
-				result.getZ() + " " + result.getActionString() + " by " + result.getPlayer() + " " + hours + " h ago";
+				result.getZ() + " " + result.getActionString() + " by " + result.getPlayer() +" "+ time;
 		sendMessage(receiver, msg, result.getX(), result.getY(), result.getZ());
 	}
 	
