@@ -7,5 +7,6 @@
 			<attribute name="javadoc_location" value="https://hub.spigotmc.org/javadocs/spigot/"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry kind="lib" path="/Users/otacon94/Dropbox/workspace_plugin/api/CoreProtect_2.12.0.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

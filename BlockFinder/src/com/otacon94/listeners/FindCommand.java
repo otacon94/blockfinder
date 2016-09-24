@@ -92,6 +92,9 @@ public class FindCommand implements CommandExecutor {
 				}else{
 					searchRadius(player, typeSet, radius);
 				}
+			}else{
+				player.sendMessage("You have to specify at least the Block Type! (Ex: b:hopper");
+				return;
 			}
 		} catch (NumberFormatException e) {
 			e.printStackTrace();
