@@ -1,5 +1,6 @@
 package com.otacon94.listeners;
 
+import java.awt.EventQueue;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.StringTokenizer;
@@ -107,7 +108,7 @@ public class FindCommand implements CommandExecutor {
 	 *            - The material names list of the blocks to search
 	 */
 	private void searchRadius(Player player, List<String> mat, String rad) {
-		Thread t = new Thread() {
+		Runnable t = new Runnable() {
 			@Override
 			public void run() {
 				Location l = player.getLocation();
@@ -134,7 +135,7 @@ public class FindCommand implements CommandExecutor {
 				}
 			}
 		};
-		t.start();
+		EventQueue.invokeLater(t);
 	}
 
 	/**
@@ -153,7 +154,7 @@ public class FindCommand implements CommandExecutor {
 	 *            - The player names list to search
 	 */
 	private void searchHistory(Player sender, List<String> mat, List<String> player, String rad) {
-		Thread t = new Thread() {
+		Runnable t = new Runnable() {
 			@Override
 			public void run() {
 				// get core protect plugin to check in blocks history
@@ -193,7 +194,7 @@ public class FindCommand implements CommandExecutor {
 			}
 
 		};
-		t.start();
+		EventQueue.invokeLater(t);
 	}
 
 	private List<Object> getMaterialList(Player p, List<String> mat) {
