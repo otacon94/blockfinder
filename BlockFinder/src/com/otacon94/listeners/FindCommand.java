@@ -2,9 +2,9 @@ package com.otacon94.listeners;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 import java.util.StringTokenizer;
-import java.util.TreeSet;
+
+import javax.swing.plaf.metal.MetalBorders.TextFieldBorder;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -40,7 +40,7 @@ public class FindCommand implements CommandExecutor {
 
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-		if (label.equalsIgnoreCase(BlockFinder.COMMAND)) {
+		if (label.equalsIgnoreCase(BlockFinder.COMMAND) || label.equalsIgnoreCase(BlockFinder.COMMANDALIAS)) {
 			if (!(sender instanceof Player)) {
 				sender.sendMessage("You must be a  Player to use this command!");
 				return false;
@@ -61,7 +61,8 @@ public class FindCommand implements CommandExecutor {
 			List<String> playerList = null;
 			List<String> typeList = new LinkedList<>();
 			String radius = DEFAULTRADIUS;
-			// simply parse, assuming input without spaces like: "u:player1,player2
+			// simply parse, assuming input without spaces like:
+			// "u:player1,player2
 			// b:<id1>,<id2> r:10"
 			for (int i = 0; i < args.length; i++) {
 				StringTokenizer st = new StringTokenizer(args[i], ": ,");
@@ -73,24 +74,23 @@ public class FindCommand implements CommandExecutor {
 						}
 					} else if (token.equalsIgnoreCase(USERID)) {
 						while (st.hasMoreTokens()) {
-							if(playerList==null){
+							if (playerList == null) {
 								playerList = new LinkedList<>();
 							}
 							playerList.add(st.nextToken().toLowerCase());
 						}
 					} else if (token.equalsIgnoreCase(RADIUSID)) {
 						radius = st.nextToken();
-					} 
+					}
 				}
 			}
 			if (typeList.size() != 0) {
 				searchHistory(player, typeList, playerList, radius);
-			}else{
+			} else {
 				player.sendMessage("You have to specify at least the Block Type! (Ex: b:hopper");
 			}
-			
+
 		} catch (NumberFormatException e) {
-			e.printStackTrace();
 			player.sendMessage("Error reading blocks id! Are sure you are using number?");
 		}
 	}
@@ -107,7 +107,7 @@ public class FindCommand implements CommandExecutor {
 	 *            - The material names list of the blocks to search
 	 */
 	private void searchRadius(Player player, List<String> mat, String rad) {
-		Thread t = new Thread(){
+		Thread t = new Thread() {
 			@Override
 			public void run() {
 				Location l = player.getLocation();
@@ -136,7 +136,7 @@ public class FindCommand implements CommandExecutor {
 		};
 		t.start();
 	}
-	
+
 	/**
 	 * Searches for specified block type in the area specified by the given
 	 * radius
@@ -159,7 +159,8 @@ public class FindCommand implements CommandExecutor {
 				// get core protect plugin to check in blocks history
 				CoreProtect co = (CoreProtect) Bukkit.getPluginManager().getPlugin("CoreProtect");
 				if (co == null) { // there is no history
-					sender.sendMessage("It wans't possible to check into the blocks history. Failed to get CoreProtect Plugin");
+					sender.sendMessage(
+							"It wans't possible to check into the blocks history. Failed to get CoreProtect Plugin");
 					sender.sendMessage("I'll check if someone of the specified blocks is present!");
 					searchRadius(sender, mat, rad);
 					return;
@@ -171,11 +172,12 @@ public class FindCommand implements CommandExecutor {
 				try {
 					int radius = Integer.valueOf(rad);
 					sender.sendMessage("Searching for: " + mat + " placed by: " + player + " in a radius of: " + rad);
-					List<Object> materialList = getMaterialList(sender,mat);
-					//it is possible to specify only placement and removal by passing and actionid list with 0 and 1 ad elements
+					List<Object> materialList = getMaterialList(sender, mat);
+					// it is possible to specify only placement and removal by
+					// passing and actionid list with 0 and 1 ad elements
 					List<String[]> values = coApi.performLookup(Integer.MAX_VALUE, player, null, materialList, null,
-							null, radius, l );
-					if( values!=null ){//there are logs!
+							null, radius, l);
+					if (values != null) {// there are logs!
 						for (String[] entry : values) {
 							ParseResult result = coApi.parseResult(entry);
 							constructMessage(sender, result);
@@ -184,26 +186,23 @@ public class FindCommand implements CommandExecutor {
 					}
 					sender.sendMessage("Found " + count + " blocks into a radius of: " + rad);
 				} catch (NumberFormatException e) {
-					e.printStackTrace();
 					sender.sendMessage("Please specify a correct radius");
-				} catch (Exception e){
-					e.printStackTrace();
+				} catch (Exception e) {
 					sender.sendMessage("Error retrieving blocks history");
 				}
 			}
 
-			
 		};
 		t.start();
 	}
-	
-	private List<Object> getMaterialList(Player p,List<String> mat) {
+
+	private List<Object> getMaterialList(Player p, List<String> mat) {
 		List<Object> matList = new LinkedList<>();
-		for(String s: mat){
+		for (String s : mat) {
 			Material m = Material.matchMaterial(s);
-			if( m==null ){
-				p.sendMessage("Impossible to found that material: "+s);
-			}else{
+			if (m == null) {
+				p.sendMessage("Impossible to found that material: " + s);
+			} else {
 				matList.add(m);
 			}
 		}
@@ -225,7 +224,7 @@ public class FindCommand implements CommandExecutor {
 	 *            - z coordinate of the block
 	 */
 	private void constructMessage(Player receiver, String mat, int x, int y, int z) {
-		String msg = mat.toUpperCase() + " at: " + x + " , " + y + " , " + x+ " ";
+		String msg = mat.toUpperCase() + " at: " + x + " , " + y + " , " + x + " ";
 		sendMessage(receiver, msg, x, y, z);
 	}
 
@@ -234,36 +233,51 @@ public class FindCommand implements CommandExecutor {
 	 * 
 	 * @param receiver
 	 *            - the Player to which send the message
-	 * @param result 
-	 * 			  - The ParseResult of the log found
+	 * @param result
+	 *            - The ParseResult of the log found
 	 */
 	private void constructMessage(Player receiver, ParseResult result) {
-		int secs = (int)(System.currentTimeMillis()/1000)-result.getTime();
-		int minutes = secs/60;
+		int secs = (int) (System.currentTimeMillis() / 1000) - result.getTime();
+		int minutes = secs / 60;
 		int hours = 0;
-		while(minutes>=60){
-			hours++;
-			minutes-=60;
-		}
+		int days = 0;
 		String time = "";
-		if(hours>0){
-			time+=hours+ " h ";
+		while (minutes >= 60) {
+			hours++;
+			minutes -= 60;
 		}
-		time+=minutes+" m ago";
-		String msg = result.getType().toString() + " at: " + result.getX() + " , " + result.getY() + " , " +
-				result.getZ() + " " + result.getActionString() + " by " + result.getPlayer() +" "+ time;
+		while (hours >= 24) {
+			days++;
+			hours -= 24;
+		}
+		if (days > 0) {
+			time += days + " d ";
+		}
+		if (hours > 0) {
+			time += hours + " h ";
+		}
+		time += minutes + " m ago";
+		String msg = result.getType().toString() + " at: " + result.getX() + " , " + result.getY() + " , "
+				+ result.getZ() + " " + result.getActionString() + " by " + result.getPlayer() + " " + time;
 		sendMessage(receiver, msg, result.getX(), result.getY(), result.getZ());
 	}
-	
+
 	/**
-	 * Sends the constructedMessage to the player and add a teleport to the specified position
-	 * @param receiver -  the player to which send the message
-	 * @param msg - the constructed message
-	 * @param x - the x position of the block
-	 * @param y - the y position of the block
-	 * @param z - the z position of the block
+	 * Sends the constructedMessage to the player and add a teleport to the
+	 * specified position
+	 * 
+	 * @param receiver
+	 *            - the player to which send the message
+	 * @param msg
+	 *            - the constructed message
+	 * @param x
+	 *            - the x position of the block
+	 * @param y
+	 *            - the y position of the block
+	 * @param z
+	 *            - the z position of the block
 	 */
-	private void sendMessage(Player receiver,String msg,int x,int y, int z){
+	private void sendMessage(Player receiver, String msg, int x, int y, int z) {
 		TextComponent message = new TextComponent(msg);
 		message.setColor(ChatColor.GREEN);
 		message.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/tp " + x + " " + y + " " + z));

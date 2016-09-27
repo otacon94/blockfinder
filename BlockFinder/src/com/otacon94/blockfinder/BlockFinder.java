@@ -10,14 +10,16 @@ import com.otacon94.listeners.FindCommand;
  * @author otacon94
  */
 public class BlockFinder extends JavaPlugin  {
-	
+
 	public static final String COMMAND = "findblock";
+	public static final String COMMANDALIAS = "fb";
 
 	@Override
 	public void onEnable() {
 		Logger logger = getLogger();
 		logger.info("BlockFinderPlugin is Enabled");
 		this.getCommand(COMMAND).setExecutor(new FindCommand());
+		this.getCommand(COMMANDALIAS).setExecutor(new FindCommand());
 	}
 
 	@Override

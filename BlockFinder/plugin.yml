@@ -1,7 +1,10 @@
 name: BlockFinder
 main: com.otacon94.blockfinder.BlockFinder
 version: 1.0
+author: Otacon94
+website: https://github.com/otacon94/blockfinder
+softdepend: [CoreProtect]
 commands:
  findblock:
-    description: It allow you to search for specified block in a specified radius. It is possible to search for a specified list of players and in the history through the integration with "CoreProtect" plugin. Example usage is /findblock u:<player1>,<player2>...(optional) -h (to search in history, optional) b:<block1>,<block2>... (required example b:furnace,hopper) r:<radius> (optional)
+    description: It allow you to search for specified block in a specified radius. It is possible to search for a specified list of players and in the history through the integration with "CoreProtect" plugin. Example usage is /findblock u:<player1>,<player2>...(optional) b:<block1>,<block2>... (required example b:furnace,hopper) r:<radius> (optional, default is 100)
     aliases: [fb]
