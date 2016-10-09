@@ -6,5 +6,5 @@ website: https://github.com/otacon94/blockfinder
 softdepend: [CoreProtect]
 commands:
  findblock:
-    description: §9BlockFinder. For help type: /findblock help
+    description:BlockFinder. For help type: /findblock help
     aliases: [fb]
