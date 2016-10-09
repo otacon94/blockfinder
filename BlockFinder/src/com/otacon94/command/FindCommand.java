@@ -38,6 +38,7 @@ public class FindCommand implements CommandExecutor {
 	private static final String BLOCKID = "b";
 	private static final String USERID = "u";
 	private static final String RADIUSID = "r";
+	private static final String ACTUALID = "-h";
 
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
@@ -66,6 +67,7 @@ public class FindCommand implements CommandExecutor {
 			List<String> playerList = null;
 			List<String> typeList = new LinkedList<>();
 			String radius = DEFAULTRADIUS;
+			boolean actual = false;
 			// simply parse, assuming input without spaces like:
 			// "u:player1,player2
 			// b:<id1>,<id2> r:10"
@@ -86,11 +88,16 @@ public class FindCommand implements CommandExecutor {
 						}
 					} else if (token.equalsIgnoreCase(RADIUSID)) {
 						radius = st.nextToken();
+					} else if (token.equalsIgnoreCase(ACTUALID)) {
+						actual = true;
 					}
 				}
 			}
 			if (typeList.size() != 0) {
-				searchHistory(player, typeList, playerList, radius);
+				if(!actual)
+					searchHistory(player, typeList, playerList, radius);
+				else
+					searchRadius(player, typeList, radius);
 			} else {
 				player.sendMessage("You have to specify at least the Block Type! (Ex: b:hopper");
 			}
@@ -111,34 +118,28 @@ public class FindCommand implements CommandExecutor {
 	 *            - The material names list of the blocks to search
 	 */
 	private void searchRadius(Player player, List<String> mat, String rad) {
-		Runnable t = new Runnable() {
-			@Override
-			public void run() {
-				Location l = player.getLocation();
-				World world = l.getWorld();
-				int count = 0;
-				try {
-					int radius = Integer.valueOf(rad);
-					player.sendMessage("Searching for: " + mat + " in a radius of: " + rad);
-					for (int i = (int) l.getX() - radius; i < l.getX() + radius; i++) {
-						for (int j = (int) l.getY() - radius; j < l.getY() + radius; j++) {
-							for (int k = (int) l.getZ() - radius; k < l.getZ() + radius; k++) {
-								Block block = world.getBlockAt(i, j, k);
-								if (mat.contains(block.getType().toString().toLowerCase())) {
-									constructMessage(player, block.getType().toString(), i, j, k);
-									count++;
-								}
-							}
+		Location l = player.getLocation();
+		World world = l.getWorld();
+		int count = 0;
+		try {
+			int radius = Integer.valueOf(rad);
+			player.sendMessage("Searching for: " + mat + " in a radius of: " + rad);
+			for (int i = (int) l.getX() - radius; i < l.getX() + radius; i++) {
+				for (int j = (int) l.getY() - radius; j < l.getY() + radius; j++) {
+					for (int k = (int) l.getZ() - radius; k < l.getZ() + radius; k++) {
+						Block block = world.getBlockAt(i, j, k);
+						if (mat.contains(block.getType().toString().toLowerCase())) {
+							constructMessage(player, block.getType().toString(), i, j, k);
+							count++;
 						}
-					} // for x
-					player.sendMessage("Found " + count + " blocks into a radius of: " + rad);
-				} catch (Exception e) {
-					player.sendMessage("Please specify a correct radius or a correct material");
-					player.sendMessage("Usage: /findblock <material> <radius>");
+					}
 				}
-			}
-		};
-		EventQueue.invokeLater(t);
+			} // for x
+			player.sendMessage("Found " + count + " blocks into a radius of: " + rad);
+		} catch (Exception e) {
+			player.sendMessage("Please specify a correct radius or a correct material");
+			player.sendMessage("Usage: /findblock <material> <radius>");
+		}
 	}
 
 	/**
@@ -157,47 +158,39 @@ public class FindCommand implements CommandExecutor {
 	 *            - The player names list to search
 	 */
 	private void searchHistory(Player sender, List<String> mat, List<String> player, String rad) {
-		Runnable t = new Runnable() {
-			@Override
-			public void run() {
-				// get core protect plugin to check in blocks history
-				CoreProtect co = (CoreProtect) Bukkit.getPluginManager().getPlugin("CoreProtect");
-				if (co == null) { // there is no history
-					sender.sendMessage(
-							"It wans't possible to check into the blocks history. Failed to get CoreProtect Plugin");
-					sender.sendMessage("I'll check if someone of the specified blocks is present!");
-					searchRadius(sender, mat, rad);
-					return;
-				}
-				// get coreprotect api
-				CoreProtectAPI coApi = co.getAPI();
-				Location l = sender.getLocation();
-				int count = 0;
-				try {
-					int radius = Integer.valueOf(rad);
-					sender.sendMessage("Searching for: " + mat + " placed by: " + player + " in a radius of: " + rad);
-					List<Object> materialList = getMaterialList(sender, mat);
-					// it is possible to specify only placement and removal by
-					// passing and actionid list with 0 and 1 ad elements
-					List<String[]> values = coApi.performLookup(Integer.MAX_VALUE, player, null, materialList, null,
-							null, radius, l);
-					if (values != null) {// there are logs!
-						for (String[] entry : values) {
-							ParseResult result = coApi.parseResult(entry);
-							constructMessage(sender, result);
-							count++;
-						}
-					}
-					sender.sendMessage("Found " + count + " blocks into a radius of: " + rad);
-				} catch (NumberFormatException e) {
-					sender.sendMessage("Please specify a correct radius");
-				} catch (Exception e) {
-					sender.sendMessage("Error retrieving blocks history");
+		CoreProtect co = (CoreProtect) Bukkit.getPluginManager().getPlugin("CoreProtect");
+		if (co == null) { // there is no history
+			sender.sendMessage(
+					"It wans't possible to check into the blocks history. Failed to get CoreProtect Plugin");
+			sender.sendMessage("I'll check if someone of the specified blocks is present!");
+			searchRadius(sender, mat, rad);
+			return;
+		}
+		// get coreprotect api
+		CoreProtectAPI coApi = co.getAPI();
+		Location l = sender.getLocation();
+		int count = 0;
+		try {
+			int radius = Integer.valueOf(rad);
+			sender.sendMessage("Searching for: " + mat + " placed by: " + player + " in a radius of: " + rad);
+			List<Object> materialList = getMaterialList(sender, mat);
+			// it is possible to specify only placement and removal by
+			// passing and actionid list with 0 and 1 ad elements
+			List<String[]> values = coApi.performLookup(Integer.MAX_VALUE, player, null, materialList, null,
+					null, radius, l);
+			if (values != null) {// there are logs!
+				for (String[] entry : values) {
+					ParseResult result = coApi.parseResult(entry);
+					constructMessage(sender, result);
+					count++;
 				}
 			}
-
-		};
-		EventQueue.invokeLater(t);
+			sender.sendMessage("Found " + count + " blocks into a radius of: " + rad);
+		} catch (NumberFormatException e) {
+			sender.sendMessage("Please specify a correct radius");
+		} catch (Exception e) {
+			sender.sendMessage("Error retrieving blocks history");
+		}
 	}
 
 	private List<Object> getMaterialList(Player p, List<String> mat) {
@@ -298,10 +291,11 @@ public class FindCommand implements CommandExecutor {
 	private void showHelp(Player p){
 		p.sendMessage("This plugin allows you to search for blocks around your current location!");
 		p.sendMessage("------- USAGE --------");
-		p.sendMessage("/findblock u:<player1>,<player2>... b:<blockname1>,<blockname2>... r:<radius>");
+		p.sendMessage("/findblock u:<player1>,<player2>... b:<blockname1>,<blockname2>... r:<radius> -h");
 		p.sendMessage("Use u: to specify a list of players");
 		p.sendMessage("Use b: to specify a list of blocks");
 		p.sendMessage("Use r: to specify a radius (default 100)");
+		p.sendMessage("Use -h: to search only in present blocks (no coreprotect)");
 	}
 
 }
