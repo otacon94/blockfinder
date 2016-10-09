@@ -4,7 +4,7 @@ import java.util.logging.Logger;
 
 import org.bukkit.plugin.java.JavaPlugin;
 
-import com.otacon94.listeners.FindCommand;
+import com.otacon94.command.FindCommand;
 
 /**
  * @author otacon94

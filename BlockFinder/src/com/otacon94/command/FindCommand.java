@@ -1,4 +1,4 @@
-package com.otacon94.listeners;
+package com.otacon94.command;
 
 import java.awt.EventQueue;
 import java.util.LinkedList;
@@ -59,6 +59,10 @@ public class FindCommand implements CommandExecutor {
 
 	private void parseInput(Player player, String[] args) {
 		try {
+			if( helpRequest(args) ){
+				showHelp(player);
+				return;
+			}
 			List<String> playerList = null;
 			List<String> typeList = new LinkedList<>();
 			String radius = DEFAULTRADIUS;
@@ -90,7 +94,6 @@ public class FindCommand implements CommandExecutor {
 			} else {
 				player.sendMessage("You have to specify at least the Block Type! (Ex: b:hopper");
 			}
-
 		} catch (NumberFormatException e) {
 			player.sendMessage("Error reading blocks id! Are sure you are using number?");
 		}
@@ -285,6 +288,20 @@ public class FindCommand implements CommandExecutor {
 		message.setHoverEvent(
 				new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("Teleport to position!").create()));
 		receiver.spigot().sendMessage(message);
+	}
+	
+	
+	private boolean helpRequest(String[] args){
+		return args!=null && args[0].equalsIgnoreCase("help");
+	}
+	
+	private void showHelp(Player p){
+		p.sendMessage("This plugin allows you to search for blocks around your current location!");
+		p.sendMessage("------- USAGE --------");
+		p.sendMessage("/findblock u:<player1>,<player2>... b:<blockname1>,<blockname2>... r:<radius>");
+		p.sendMessage("Use u: to specify a list of players");
+		p.sendMessage("Use b: to specify a list of blocks");
+		p.sendMessage("Use r: to specify a radius (default 100)");
 	}
 
 }
